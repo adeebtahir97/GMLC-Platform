@@ -20,10 +20,12 @@ Step 5: Click 'Start' (or 'Predict' in case of Prediction) to send inputs to the
 
 
 
-# Software Required: Python (Version 3.5+)
+# Software Required:
+Python (Version 3.5+)
 
 
 
-# Note: The python scripts enclosed herewith are not authorized  for distribution of any kind or scale outside this project scope
+# Note:
+The python scripts enclosed herewith are not authorized  for distribution of any kind or scale outside this project scope
 
 
