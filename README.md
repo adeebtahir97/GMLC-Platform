@@ -10,7 +10,8 @@ This repository contains the corresponding codes and sample datasets used in the
 
 Step 1: Copy all the datasets from the 'datasets' directory into the 'codes' directory.
 
-Step 2: Start the preprocessing/training/prediction script in the	background using the following command: python <scriptname.py>
+Step 2: Start the preprocessing/training/prediction script in the	background using the following command:
+python <scriptname.py>
 
 Step 3: Open platform.html using a browser of choice (preferably Chrome/Firefox).
 
