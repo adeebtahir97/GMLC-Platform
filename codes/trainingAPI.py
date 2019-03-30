@@ -93,26 +93,7 @@ def training():
     pickle_in.close()
     bucketParams = uidDict[uid]["bucketParams"]
 
-    # es = Elasticsearch([api["elastic"]["url"]], scheme=api["elastic"]["scheme"], ca_certs=certifi.where(), port=9200, timeout=300, max_retries=10, retry_on_timeout=True)
 
-    # body = {
-    #     "size": 10000,
-    #     "query": {
-    #         "match_all": {}
-    #     }
-    # }
-    # response = escan(client=es,index=elasticIndex,query=body, request_timeout=300, size=10000)
-
-    # # Initialize a double ended queue
-    # output_all = deque()
-    # # Extend deque with iterator
-    # output_all.extend(response)
-    # # Convert deque to DataFrame
-    # df = json_normalize(output_all)
-    # df = df[[x for x in df.columns if "_source." in x]]
-
-    # df = df[['_source.'+s for s in bucketParams] +['_source.key']+ ['_source.target']]
-    # df.columns = bucketParams + ['key'] + ['target']
     df = pd.read_csv(elasticIndex,header=0)
    
     # GET UNIQUE KEYS
@@ -168,23 +149,7 @@ def training():
     pickle.dump(dict(model_dict), pickle_out,-1)
     pickle_out.close()    
 
-    # if callbackUrl == "":
-    #     kafkaPayload={
-    #         "topic": uid,
-    #         "payload": {
-    #             "msg":"training-completed",
-    #             "uid":uid,
-    #             "jwt":content["jwt"]
-    #         }
-    #     }
-    #     requests.post(url=api["kafkaPublish"]["url"], json=kafkaPayload, headers={'Content-Type': 'application/json','Authorization':api["kafkaPublish"]["authorization"]})
-    # else:
-    #     responseData = {
-    #         "response":"Training completed!"
-    #     }
 
-    #     r1 = requests.post(url=callbackUrl, json=responseData, headers={'Content-Type': 'application/json'})
-    #     print(r1.status_code, r1.reason, r1.text)
     print('Training completed & Models Dumped!')
 
 @app.route('/autocoding/train', methods=["POST"])
