@@ -13,7 +13,7 @@ from pandas.io.json import json_normalize
 from elasticsearch.helpers import scan as escan
 from collections import deque
 from flask import jsonify, Flask, request
-from config import api
+# from config import api
 import os
 from flask_cors import CORS
 from sklearn.model_selection import train_test_split
