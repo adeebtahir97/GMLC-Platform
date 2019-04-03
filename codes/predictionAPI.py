@@ -8,6 +8,7 @@ import pathlib
 from collections import OrderedDict
 import threading
 from flask_cors import CORS
+import random
 modelDict ={}
 uidDict = {}
 
@@ -36,17 +37,6 @@ def get_nbConcatsConsidered(nbParams,variableDictPartial,listOfNonBucketParamCon
 	if allEmpty: 
 		NonBucketParamConcatsConsidered = listOfNonBucketParamConcats
 	else:
-		# print('NbList:')
-		# for rem in listOfNonBucketParamConcats: print(rem.split('##'))
-		# print('\n\n\n\n Considered Rems NOw:')			
-		# for testInd in range(0,len(listOfNonBucketParamConcats)):						
-		# 	remark = next(([ind,s] for ind,s in enumerate(listOfNonBucketParamConcats[testInd:]) if (checkRemark(variableDictPartial,nbParams,s)) and (True)), [False,False]) #Get the next best partial match
-		# 	if remark[1] not in alreadySeen:					
-		# 		NonBucketParamConcatsConsidered.append(remark[1])
-		# 		alreadySeen[remark[1]] = "1"
-		# 		testInd = remark[0]					
-		# 	else:					
-		# 		break	
 		NonBucketParamConcatsConsidered = [s for s in listOfNonBucketParamConcats if checkRemark(variableDictPartial,nbParams,s)]
 	return NonBucketParamConcatsConsidered
 
@@ -166,9 +156,12 @@ def predict():
 		integerMapping = modelDict[uid].get(key)[1]
 		listOfNonBucketParamConcats = modelDict[uid].get(key)[2]
 		acc = modelDict[uid].get(key)[3]
+
 		precision = modelDict[uid].get(key)[4][0]
+
 		recall = modelDict[uid].get(key)[4][1]
-		fscore = modelDict[uid].get(key)[4][2]
+
+		fscore = 2*(precision*recall)/(precision + recall)
 
 
 		print('Time To Fetch classifier,integerMapping and listofnbpc->{:f}'.format(round(time.time()-tTemp,10)),' seconds')
@@ -186,13 +179,8 @@ def predict():
 
 		tTemp = time.time()
 		NonBucketParamConcatsConsidered=get_nbConcatsConsidered(nbParams,variableDictPartial,listOfNonBucketParamConcats,NonBucketParamConcatsConsidered)
-		print('Time To Fetch Considered Remarks->{:f}'.format(round(time.time()-tTemp,10)),' seconds')
-		print('Mappings->')
-		for mapping in NonBucketParamConcatsConsidered:
-			print(mapping.split('##'))
+		print('Time To Fetch Considered Records->{:f}'.format(round(time.time()-tTemp,10)),' seconds')
 
-		# if len(NonBucketParamConcatsConsidered)==0:
-		# 	NonBucketParamConcatsConsidered = listOfNonBucketParamConcats
 
 		if len(NonBucketParamConcatsConsidered)==0:
 			responseData = {"predictions":[]}
