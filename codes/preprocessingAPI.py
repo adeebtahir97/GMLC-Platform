@@ -15,7 +15,7 @@ import flask
 from flask import jsonify, request, Flask, request
 import os
 import certifi
-from config import api
+# from config import api
 from flask_cors import CORS
 
 content = {}
