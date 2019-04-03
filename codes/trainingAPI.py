@@ -21,22 +21,31 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
 import warnings
 import sklearn.exceptions
+from pandas_ml import ConfusionMatrix
 warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWarning)
 
-content = 0
-nest = 15
-crit = 'entropy'
-msl = 1
-mf = 'auto'
-md = None
+content = {}
 
-def process(bucketList, model_dict, bucketParams):
-    global nest
-    global crit
-    global md
-    global msl
-    global mf
+def process(bucketList, model_dict, bucketParams,content):
+    
     # print('This process has',len(bucketList),' buckets')
+    nestimators = 15
+    critt = 'entropy'
+    maxd = 20 
+    minsl = 1 
+    maxf = 'auto'
+    
+    if len(content['nest']) > 0:
+        nestimators = int(content['nest'])
+    if len(content['crit']) > 0:
+        critt = content['crit']
+    if len(content['md']) > 0:
+        maxd = int(content['md'])
+    if len(content['msl']) > 0:
+        minsl = int(content['msl'])
+    if str(content['mf']) != "auto" and len(content['mf']) > 0:
+        maxf = int(content['mf'])
+
     for bucket in bucketList[:]:    
         df = bucket[0]
         integerMapping = bucket[1]
@@ -48,11 +57,11 @@ def process(bucketList, model_dict, bucketParams):
         labelEncodedColumns = [s+'Label' for s in bucketParams] + ['concatLabel']
         dfTemp = df[labelEncodedColumns]
 
+        print('Creating RF Tree with:')
+        print('nest,crit,msl,mf,md->',nestimators,critt,minsl,maxf,maxd)
+        clf1 = RandomForestClassifier(n_estimators=nestimators, random_state=1,criterion=critt,max_depth=maxd, min_samples_leaf=minsl, max_features=maxf)
+        
 
-        clf1 = RandomForestClassifier(n_estimators=nest, random_state=1,criterion=crit,max_depth=md, min_samples_leaf=msl, max_features=mf)
-        clf1.fit(df[labelEncodedColumns], df['target'])
-        # acc = 60
-        # prfs = [1,1,1,1]
 
         nparray = dfTemp.to_numpy()
         targetnparray = df['target'].to_numpy()
@@ -60,14 +69,17 @@ def process(bucketList, model_dict, bucketParams):
         # print('target numpy array is->\n',targetnparray,len(nparray),'\n\n\n\n')
 
         X_train, X_test, y_train, y_test = train_test_split(nparray, targetnparray, test_size=0.33, random_state=1)
-        
+
+        clf1.fit(X_train, y_train)
         y_pred = clf1.predict(X_test)        
         # print('y_testLength->',len(y_test),'y_predLength->',len(y_pred))
 
 
         acc = accuracy_score(y_test,y_pred)
+        # cm = ConfusionMatrix(y_test,y_pred)
+        # print(cm)
         print('Acc->',acc)
-        prfs = list(precision_recall_fscore_support(y_test, y_pred, average='weighted'))
+        prfs = list(precision_recall_fscore_support(y_test, y_pred, average='micro'))
         print('prfs->',prfs)
 
         # In this dictionary, each key will map to a list which has classifier(index 0),integerMapping(index 1),concats(index 2)
@@ -93,8 +105,7 @@ def training():
     pickle_in.close()
     bucketParams = uidDict[uid]["bucketParams"]
 
-
-    df = pd.read_csv(elasticIndex,header=0)
+    df = pd.read_csv('./datasets/'+elasticIndex,header=0)
    
     # GET UNIQUE KEYS
     unique_keys = list(df.key.unique())
@@ -125,12 +136,12 @@ def training():
     else:
         nProcesses = intDiv+1
 
-    for idx in range(1):
+    for idx in range(nProcesses):
         startInd = idx*divideBy
         if (startInd+divideBy)<len(unique_keys):
-            process_list.append(multiprocessing.Process(target=process, args=(buckets[startInd:startInd+divideBy], model_dict, bucketParams)))
+            process_list.append(multiprocessing.Process(target=process, args=(buckets[startInd:startInd+divideBy], model_dict, bucketParams,content)))
         else:
-            process_list.append(multiprocessing.Process(target=process, args=(buckets[startInd:len(unique_keys)], model_dict, bucketParams)))
+            process_list.append(multiprocessing.Process(target=process, args=(buckets[startInd:len(unique_keys)], model_dict, bucketParams,content)))
             break
 
     t1 = time.time()
@@ -158,31 +169,6 @@ def train():
     content = request.get_json()
 
     return '{"response":"Training Started!"}'
-
-@app.route('/autocoding/model', methods=["POST"])
-def model():    
-    global nest
-    global crit
-    global md
-    global msl
-    global mf
-    content = request.get_json()
-    if len(content['nest']) > 0:
-        nest = content['nest']
-    if len(content['crit']) > 0:
-        crit = content['crit']
-    if len(content['md']) > 0:
-        md = content['md']
-    if len(content['msl']) > 0:
-        msl = content['msl']
-    if len(content['mf']) > 0:
-        mf = content['mf']
-
-    return '{"response":"Model Parameters Set!"}'
-
-@app.route('/', methods=["GET"])
-def hello():
-    return '{"response":"Hello World!"}'
 
 if __name__ == '__main__':
     app.run(port=4050,debug=True)
